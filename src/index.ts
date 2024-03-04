@@ -1,14 +1,17 @@
-import { User } from "./observers/User";
-import { NotificationService } from "./subjects/notification.service";
+import { EventEmitter } from "events";
 
-const notificationService = new NotificationService();
+class User {
+  constructor(private name: string, private eventEmitter: EventEmitter) {
+    this.eventEmitter.on("notification", (message: string) => {
+      console.log(`${this.name} received a notification: ${message}`);
+    });
+  }
+}
 
-const user1 = new User("User 1");
-const user2 = new User("User 2");
-const user3 = new User("User 3");
+const eventEmitter = new EventEmitter();
 
-notificationService.registerObserver(user1);
-notificationService.registerObserver(user2);
-notificationService.registerObserver(user3);
+const user1 = new User("User 1", eventEmitter);
+const user2 = new User("User 2", eventEmitter);
+const user3 = new User("User 3", eventEmitter);
 
-notificationService.notifyObservers("This is a test notification!");
+eventEmitter.emit("notification", "This is a test notification!");
