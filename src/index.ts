@@ -2,6 +2,8 @@ import express from "express";
 import { EventEmitter } from "events";
 import mongoose, { ConnectOptions } from "mongoose";
 import { Notification } from "./models/notification.model";
+import { Server } from "http";
+import { Server as IOServer } from "socket.io";
 
 // Connect to MongoDB
 mongoose.connect("mongodb://localhost:27017/notificationservice", {
@@ -30,9 +32,19 @@ const users: Users = {
 const app = express();
 app.use(express.json());
 
+const httpServer = new Server(app);
+const io = new IOServer(httpServer);
+
+io.on("connection", (socket) => {
+  console.log("a user connected");
+});
+
 app.post("/notify", async (req, res) => {
   const { message } = req.body;
   eventEmitter.emit("notification", message);
+
+  // Emit the notification to all connected Socket.IO clients
+  io.emit("notification", message);
 
   // Save the notification to MongoDB
   const notification = new Notification({ message });
